@@ -20,6 +20,27 @@
 
 package dev.yekta.airline;
 
-public class Util {
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+public class Util {
+    public static void waitFor(long ms) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(ms);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public static String randomStringElement(String[] array) {
+        return array[new Random().nextInt(array.length)];
+    }
+
+    public static int randomIntElement(int[] array) {
+        return array[new Random().nextInt(array.length)];
+    }
+
+    public static int randomInt(int fromInclusive, int toExclusive) {
+        return new Random().nextInt(toExclusive) + fromInclusive;
+    }
 }
