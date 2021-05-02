@@ -20,6 +20,24 @@
 
 package dev.yekta.airline;
 
-public class Hash {
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
+public class Hash {
+    public static String sha256(final String data) {
+        StringBuilder hashStr;
+        try {
+            final byte[] hash = MessageDigest.getInstance("SHA-256").digest(data.getBytes(StandardCharsets.UTF_8));
+            hashStr = new StringBuilder(hash.length);
+
+            for (byte hashByte : hash)
+                hashStr.append(Integer.toHexString(255 & hashByte));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            hashStr = null;
+        }
+
+        return hashStr != null ? hashStr.toString() : null;
+    }
 }
