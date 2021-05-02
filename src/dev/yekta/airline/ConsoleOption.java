@@ -20,6 +20,34 @@
 
 package dev.yekta.airline;
 
-public class ConsoleOption {
+import static dev.yekta.airline.ConsoleFormat.*;
 
+public class ConsoleOption {
+    private final char charCode;
+    private final String optionTitle;
+    private final OptionAction action;
+
+    public ConsoleOption(char charCode, String optionTitle, OptionAction action) {
+        this.charCode = charCode;
+        this.optionTitle = optionTitle;
+        this.action = action;
+    }
+
+    public char getCharCode() {
+        return charCode;
+    }
+
+    public void run() {
+        action.run();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("  %s[%s]%s > %s",
+                BG_BLACK + RED_BOLD_BRIGHT,
+                YELLOW_BOLD_BRIGHT + charCode + RED_BOLD_BRIGHT,
+                RESET + WHITE,
+                WHITE_BOLD_BRIGHT + optionTitle + RESET
+        );
+    }
 }
