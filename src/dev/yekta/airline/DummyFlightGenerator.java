@@ -20,6 +20,49 @@
 
 package dev.yekta.airline;
 
-public class DummyFlightGenerator {
+import java.util.ArrayList;
 
+import static dev.yekta.airline.Flight.*;
+import static dev.yekta.airline.Util.*;
+
+public class DummyFlightGenerator {
+    // Due to uniqueness of flights, counts bigger than 32 will result in creation of 32 flights only.
+    public void fillWithRandomFlights(AirlineData data, int count) {
+        ArrayList<Integer> id = new ArrayList<>();
+
+        loop:
+        for (int i = 0; i < count; i++) {
+            int flightId;
+            String flightFrom, flightTo;
+
+            id.add(-1);
+
+            do {
+                flightId = randomInt(10, 10000);
+                id.set(i, flightId);
+            } while (id.indexOf(flightId) != i);
+
+            flightFrom = randomStringElement(FLIGHT_LOCATIONS);
+            do {
+                flightTo = randomStringElement(FLIGHT_LOCATIONS);
+            } while (flightFrom.equals(flightTo));
+
+            int dataSize = data.getFlights().size();
+            if (dataSize >= 1)
+                for (int j = 0; j < dataSize; j++)
+                    for (int k = j - 1; k >= 0; k--)
+                        if (data.getFlights().get(j).hashCode() == data.getFlights().get(k).hashCode())
+                            continue loop;
+
+            data.addFlight(
+                    new Flight(
+                            String.format("%4s", flightId).replace(' ', '0'),
+                            flightFrom,
+                            flightTo,
+                            randomStringElement(FLIGHT_WEEKDAYS),
+                            randomIntElement(FLIGHT_HOURS)
+                    )
+            );
+        }
+    }
 }
