@@ -20,6 +20,36 @@
 
 package dev.yekta.airline;
 
-public class FlightTable {
+import java.util.ArrayList;
 
+import static dev.yekta.airline.ConsoleFormat.*;
+
+public class FlightTable {
+    private ArrayList<Flight> flights;
+
+    public FlightTable(ArrayList<Flight> flights) {
+        this.flights = flights;
+    }
+
+    public ArrayList<Flight> getFlights() {
+        return flights;
+    }
+
+    @Override
+    public String toString() {
+        final String INDENT = "\t\t\t\t ";
+        final StringBuilder flightsInfo = new StringBuilder("\n"
+                + INDENT
+                + BG_YELLOW_BRIGHT
+                + BLACK_BOLD
+                + " Number    From      To        Day       Time "
+                + RESET
+                + "\n"
+        );
+
+        for (Flight f : flights)
+            flightsInfo.append(INDENT).append(f).append("\n");
+
+        return flightsInfo.toString();
+    }
 }
