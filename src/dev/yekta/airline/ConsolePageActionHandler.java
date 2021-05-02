@@ -20,6 +20,30 @@
 
 package dev.yekta.airline;
 
-public class ConsolePageActionHandler {
+import java.util.ArrayList;
 
+public class ConsolePageActionHandler {
+    private final ArrayList<ConsoleOption> options;
+
+    public ConsolePageActionHandler(ArrayList<ConsoleOption> options) {
+        this.options = options;
+    }
+
+    public ConsolePageActionHandler() {
+        this(new ArrayList<>());
+    }
+
+    public void add(ConsoleOption option) {
+        options.add(option);
+    }
+
+    public boolean handleActionFor(char charCode) {
+        for (ConsoleOption opt : options)
+            if (opt.getCharCode() == charCode) {
+                opt.run();
+                return true;
+            }
+
+        return false;
+    }
 }
