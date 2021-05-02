@@ -20,6 +20,43 @@
 
 package dev.yekta.airline;
 
-public class User {
+import java.util.ArrayList;
 
+public class User {
+    private static int lastId = -1;
+    private final int id;
+    private final String username;
+    private final String password;
+    private final ArrayList<Flight> flights;
+
+    public User(String username, String password) {
+        this.id = ++lastId;
+        this.username = username;
+        this.password = hashPassword(password);
+        this.flights = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public ArrayList<Flight> getFlights() {
+        return flights;
+    }
+
+    public void addFlight(Flight flight) {
+        flights.add(flight);
+    }
+
+    public static String hashPassword(String password) {
+        return Hash.sha256(password);
+    }
 }
