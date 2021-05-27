@@ -47,11 +47,11 @@ public class DummyFlightGenerator {
                 flightTo = randomStringElement(FLIGHT_LOCATIONS);
             } while (flightFrom.equals(flightTo));
 
-            int dataSize = data.getFlights().size();
+            long dataSize = data.getFlightsFile().length();
             if (dataSize >= 1)
                 for (int j = 0; j < dataSize; j++)
                     for (int k = j - 1; k >= 0; k--)
-                        if (data.getFlights().get(j).hashCode() == data.getFlights().get(k).hashCode())
+                        if (data.getFlightsFile().seekEndOfLine(j).getKey().hashCode() == data.getFlightsFile().seekEndOfLine(k).getKey().hashCode())
                             continue loop;
 
             data.addFlight(
