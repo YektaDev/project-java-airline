@@ -20,6 +20,7 @@
 
 package dev.yekta.airline;
 
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 import static dev.yekta.airline.Util.waitFor;
@@ -122,7 +123,18 @@ public class PageManager {
     }
 
     public static void toAllFlights() {
-        FlightTable table = new FlightTable(AirlineData.getInstance().getFlights());
+        AirlineData airlineData = AirlineData.getInstance();
+        FileManager<Flight> file = airlineData.getFlightsFile();
+
+        file.open();
+
+        ArrayList<Flight> flights = new ArrayList<>();
+
+        while (file.pointerPos() < file.length()) {
+            flights.add(file.readRecord());
+        }
+
+        FlightTable table = new FlightTable(flights);
 
         new ConsolePage("All Available Flights") {{
             addContent(table.toString());
@@ -130,6 +142,8 @@ public class PageManager {
             updateView();
             handleChar(false);
         }};
+
+        file.close();
     }
 
     public static void toSearchFlights() {
@@ -151,7 +165,9 @@ public class PageManager {
     }
 
     public static void toMyFlights() {
-        FlightTable table = new FlightTable(AirlineData.getInstance().currentUser().getFlights());
+        User current = AirlineData.getInstance().currentUser().updateFlights();
+
+        FlightTable table = new FlightTable(current.getFlights());
 
         new ConsolePage("My Flights") {{
             if (table.getFlights().size() > 0)
@@ -213,7 +229,35 @@ public class PageManager {
     }
 
     private static void addTicket(Flight flight) {
-        AirlineData.getInstance().currentUser().addFlight(flight);
+        User currentUser = AirlineData.getInstance().currentUser();
+
+        RandomAccessFile file;
+        try {
+            file = new RandomAccessFile(AirlineData.usersFileDir, "rw");
+
+            StringBuilder data = new StringBuilder();
+            String line;
+            while ((line = file.readLine()) != null) {
+                data.append(line).append("\n");
+            }
+
+            String newData = data.toString()
+                    .replaceAll("\\u0000", "")
+                    .replace(
+                            currentUser.serialize().trim().concat("\n"),
+                            currentUser.serialize().concat(Serializable.SEP_W).concat(flight.serialize()).trim().concat("\n")
+                    );
+
+            file.seek(0);
+            file.setLength(newData.length());
+            file.writeChars(newData);
+
+            file.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
         toMain();
     }
 }
