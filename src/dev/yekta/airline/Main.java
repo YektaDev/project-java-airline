@@ -22,7 +22,16 @@ package dev.yekta.airline;
 
 public class Main {
     public static void main(String[] args) {
-        new DummyFlightGenerator().fillWithRandomFlights(AirlineData.getInstance(), 10);
+        generateDummyIfFirstRun();
         PageManager.toLanding();
+    }
+
+    private static void generateDummyIfFirstRun() {
+        AirlineData data = AirlineData.getInstance();
+        data.getFlightsFile().open();
+        if (data.getFlightsFile().length() < 1) {
+            new DummyFlightGenerator().fillWithRandomFlights(data, 10);
+        }
+        data.getFlightsFile().close();
     }
 }
