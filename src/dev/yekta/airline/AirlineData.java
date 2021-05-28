@@ -23,7 +23,11 @@ package dev.yekta.airline;
 import java.util.ArrayList;
 
 public class AirlineData {
+    final static String usersFileDir = "users.dat";
+    final static String flightsFileDir = "flights.dat";
+
     private static AirlineData airlineData;
+
 
     public static AirlineData getInstance() {
         if (airlineData == null)
@@ -32,46 +36,73 @@ public class AirlineData {
         return airlineData;
     }
 
-    private final ArrayList<User> users;
-    private final ArrayList<Flight> flights;
+    private final FileManager<Flight> flightFileManager;
+    private final FileManager<User> userFileManager;
     private int currentSessionUserId = -1;
 
     public AirlineData() {
-        users = new ArrayList<>();
-        flights = new ArrayList<>();
+        userFileManager = new FileManager<>(User::new, usersFileDir);
+        flightFileManager = new FileManager<>(Flight::new, flightsFileDir);
     }
 
-    public ArrayList<Flight> getFlights() {
-        return flights;
+    public FileManager<Flight> getFlightsFile() {
+        return flightFileManager;
+    }
+
+    public FileManager<User> getUsersFile() {
+        return userFileManager;
     }
 
     public void addUser(String username, String password) {
-        users.add(new User(username, password));
+        userFileManager
+                .open()
+                .appendRecord(new User(username, password))
+                .close();
     }
 
     public void addFlight(Flight flight) {
-        flights.add(flight);
+        flightFileManager
+                .open()
+                .appendRecord(flight)
+                .close();
     }
 
     public boolean hasUser(String username) {
-        for (User u : users)
-            if (u.getUsername().equals(username))
-                return true;
+        userFileManager.open();
 
+        while (userFileManager.pointerPos() < userFileManager.length()) {
+            User u = userFileManager.readRecord();
+            if (u.getUsername().equals(username)) {
+                userFileManager.close();
+                return true;
+            }
+        }
+
+        userFileManager.close();
         return false;
     }
 
     public User currentUser() {
-        return users.get(currentSessionUserId);
+        userFileManager.open();
+        String u = userFileManager.seekEndOfLine(currentSessionUserId + 1).getKey();
+
+        userFileManager.close();
+        return new User().deserialize(u);
     }
 
     public boolean login(String username, String password) {
-        for (User u : users)
-            if (u.getUsername().equals(username) && u.getPassword().equals(User.hashPassword(password))) {
+        userFileManager.open();
+
+        while (userFileManager.pointerPos() < userFileManager.length()) {
+            User u = userFileManager.readRecord();
+            if (u.getUsername().equals(username) && new User().cleanup(u.getPassword()).equals(User.hashPassword(password))) {
                 currentSessionUserId = u.getId();
+                userFileManager.close();
                 return true;
             }
+        }
 
+        userFileManager.close();
         return false;
     }
 
@@ -80,44 +111,78 @@ public class AirlineData {
     }
 
     public ArrayList<Flight> findFlights(String from, String to, String weekDay, int hour) {
+        flightFileManager.open();
         ArrayList<Flight> result = new ArrayList<>();
 
-        flights.stream().filter(f ->
-                f.getFrom().equalsIgnoreCase(from)
-                        && f.getTo().equalsIgnoreCase(to)
-                        && f.getWeekDay().equalsIgnoreCase(weekDay)
-                        && f.getHour() == hour
-        ).forEach(result::add);
+        while (flightFileManager.pointerPos() < flightFileManager.length()) {
+            Flight f = flightFileManager.readRecord();
+            if (f.getFrom().equalsIgnoreCase(from)
+                    && f.getTo().equalsIgnoreCase(to)
+                    && f.getWeekDay().equalsIgnoreCase(weekDay)
+                    && f.getHour() == hour) {
+                result.add(f);
+            }
+        }
 
+        flightFileManager.close();
         return result;
     }
 
     public ArrayList<Flight> findFlights(String from, String to, String weekDay) {
+        flightFileManager.open();
         ArrayList<Flight> result = new ArrayList<>();
 
-        flights.stream().filter(f ->
-                f.getFrom().equalsIgnoreCase(from)
-                        && f.getTo().equalsIgnoreCase(to)
-                        && f.getWeekDay().equalsIgnoreCase(weekDay)
-        ).forEach(result::add);
+        while (flightFileManager.pointerPos() < flightFileManager.length()) {
+            Flight f = flightFileManager.readRecord();
+            if (f.getFrom().equalsIgnoreCase(from)
+                    && f.getTo().equalsIgnoreCase(to)
+                    && f.getWeekDay().equalsIgnoreCase(weekDay)) {
+                result.add(f);
+            }
+        }
 
+        flightFileManager.close();
         return result;
     }
 
     public ArrayList<Flight> findFlights(String from, String to) {
+        flightFileManager.open();
         ArrayList<Flight> result = new ArrayList<>();
 
-        flights.stream().filter(f ->
-                f.getFrom().equalsIgnoreCase(from)
-                        && f.getTo().equalsIgnoreCase(to)
-        ).forEach(result::add);
+        while (flightFileManager.pointerPos() < flightFileManager.length()) {
+            Flight f = flightFileManager.readRecord();
+            if (f.getFrom().equalsIgnoreCase(from)
+                    && f.getTo().equalsIgnoreCase(to)) {
+                result.add(f);
+            }
+        }
 
+        flightFileManager.close();
         return result;
     }
 
     public ArrayList<Flight> findFlights(String from) {
+        flightFileManager.open();
         ArrayList<Flight> result = new ArrayList<>();
-        flights.stream().filter(f -> f.getFrom().equalsIgnoreCase(from)).forEach(result::add);
+
+        while (flightFileManager.pointerPos() < flightFileManager.length()) {
+            Flight f = flightFileManager.readRecord();
+            if (f.getFrom().equalsIgnoreCase(from)) {
+                result.add(f);
+            }
+        }
+
+        flightFileManager.close();
         return result;
     }
+
+    int countRealLines() {
+        userFileManager.open();
+        int lines = 0;
+        String line;
+        while ((line = userFileManager.readLine()) != null && !line.isEmpty())
+            lines++;
+        return lines;
+    }
+
 }
