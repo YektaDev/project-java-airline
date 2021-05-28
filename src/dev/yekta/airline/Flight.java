@@ -24,7 +24,7 @@ import java.util.Objects;
 
 import static dev.yekta.airline.ConsoleFormat.*;
 
-public class Flight {
+public class Flight implements Serializable<Flight> {
     public static final String[] FLIGHT_WEEKDAYS = new String[]{"Saturday", "Sunday", "Monday", "Tuesday"};
     public static final int[] FLIGHT_HOURS = new int[]{8, 10, 18, 20};
     public static final String[] FLIGHT_LOCATIONS = new String[]{"Tehran", "Isfahan", "Yazd", "Mashhad", "Shiraz", "Kerman"};
@@ -41,6 +41,10 @@ public class Flight {
         this.to = to;
         this.weekDay = weekDay;
         this.hour = hour;
+    }
+
+    public Flight() {
+        this(null, null, null, null, -1);
     }
 
     public String getFrom() {
@@ -81,5 +85,23 @@ public class Flight {
     @Override
     public int hashCode() {
         return Objects.hash(from, to, weekDay, hour);
+    }
+
+    @Override
+    public String serialize() {
+        return id + SEP_W + from + SEP_W + to + SEP_W + weekDay + SEP_W + hour;
+    }
+
+    @Override
+    public Flight deserialize(String data) {
+        String[] flightData = data.split(SEP_R);
+
+        return new Flight(
+                cleanup(flightData[0]),
+                cleanup(flightData[1]),
+                cleanup(flightData[2]),
+                cleanup(flightData[3]),
+                Integer.parseInt(cleanup(flightData[4]))
+        );
     }
 }
